@@ -1,0 +1,814 @@
+pom.xml
+
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.5.4</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.bikkadit</groupId>
+	<artifactId>02-SB-MvcHibernateCrud</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
+	<name>02-SB-MvcHibernateCrud</name>
+	<description>Demo project for Spring Boot</description>
+	<properties>
+		<java.version>1.8</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+<dependency>
+    <groupId>org.apache.tomcat.embed</groupId>
+    <artifactId>tomcat-embed-jasper</artifactId>
+    
+</dependency>
+	 
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>jstl</artifactId>
+   
+</dependency>
+
+<dependency>
+    <groupId>org.hibernate</groupId>
+    <artifactId>hibernate-core</artifactId>
+    
+</dependency>
+    
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-orm</artifactId>
+    
+</dependency>
+    
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-jdbc</artifactId>
+   
+</dependency>
+    
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+   
+</dependency>
+
+
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+
+HibernateConfig.java
+
+
+
+package com.bikkadit.config;
+
+import java.util.Properties;
+
+import org.hibernate.cfg.Environment;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+
+@Configuration
+public class HibernateConfig {
+
+	@Value("${db.driver}")
+	private String DRIVER;
+	@Value("${db.url}")
+	private String URL;
+	@Value("${db.username}")
+	private String USERNAME;
+	@Value("${db.password}")
+	private String PASSWORD;
+	@Value("${hp.dialect}")
+	private String DIALECT;
+	@Value("${hp.hbm2ddl}")
+	private String HBM2DDL;
+	@Value("${hp.show_sql}")
+	private String SHOW_SQL;
+	@Value("${hp.packageToScan}")
+	private String PACKAGETOSCAN;
+	
+	
+	
+	@Bean
+	public DriverManagerDataSource dataSource()
+	{
+		DriverManagerDataSource ds= new DriverManagerDataSource();
+		ds.setDriverClassName(DRIVER);
+		ds.setUrl(URL);
+		ds.setUsername(USERNAME);
+		ds.setPassword(PASSWORD);
+		return ds;
+		
+	}
+	@Bean
+	public LocalSessionFactoryBean factoryBean()
+	{
+		LocalSessionFactoryBean sf= new LocalSessionFactoryBean();
+		sf.setDataSource(dataSource());
+		
+		Properties p= new Properties();
+		p.put(Environment.DIALECT,DIALECT);
+		p.put(Environment.HBM2DDL_AUTO,HBM2DDL);
+		p.put(Environment.SHOW_SQL, SHOW_SQL);
+		sf.setHibernateProperties(p);
+		sf.setPackagesToScan(PACKAGETOSCAN);
+		return sf;
+		
+		
+	}
+	
+	
+}
+
+
+application.properties
+
+
+
+server.port=9090
+
+spring.mvc.view.prefix=/pages/
+spring.mvc.view.suffix=.jsp
+
+db.driver=com.mysql.cj.jdbc.Driver
+db.url=jdbc:mysql://localhost:3306/HibernateCrud
+db.username=root
+db.password:root
+
+
+hp.dialect=org.hibernate.dialect.MySQL5Dialect
+
+hp.hbm2ddl=update
+hp.show_sql=true
+hp.packageToScan=com.bikkadit
+
+
+
+
+package com.bikkadit.model;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class User {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int uid;
+	private String name;
+	private String username;
+	private String password;
+	public int getUid() {
+		return uid;
+	}
+	public void setUid(int uid) {
+		this.uid = uid;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getUsername() {
+		return username;
+	}
+	public void setUsername(String username) {
+		this.username = username;
+	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	@Override
+	public String toString() {
+		return "User [uid=" + uid + ", name=" + name + ", username=" + username + ", password=" + password + "]";
+	}
+	
+	
+}
+
+
+
+
+
+package com.bikkadit.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.bikkadit.model.User;
+import com.bikkadit.service.UserServiceI;
+
+@Controller
+public class UserController {
+
+	@Autowired
+	private UserServiceI userServiceI;
+	
+	@GetMapping("/login")
+	public String preLogin() {
+		System.out.println("pre login method");
+		return "login";
+		
+	}
+	
+	
+	@GetMapping("/registration")
+	public String preRegister() {
+		
+		System.out.println("PreRegister Method called");
+		return "registration";
+	}
+	
+	@GetMapping("/reg")
+	public String saveUser(@ModelAttribute User user) {
+		
+		System.out.println(user);
+		System.out.println("Controller class Method");
+	int id=	userServiceI.SaveUser(user);
+		System.out.println("Object save in Db with id="+id);
+		
+		return "reg";
+	}
+	
+	@GetMapping("/getAll")
+	public String getAllUser(Model model) {
+		System.out.println("Controller layer forward");
+	List<User> list=userServiceI.getAllUser();
+	
+	model.addAttribute("list", list);
+	
+	System.out.println("Controller layer backword");
+	for(  User u:list) {
+		System.out.println(u);
+	}
+	return  "success";
+	
+	}
+   
+	@GetMapping("/log")
+	public String loginCheck(@ModelAttribute User user,Model model) {
+	
+		System.out.println(user);
+		
+	List<User> list=	userServiceI.loginCheck(user);
+	if(list==null) {
+		return "registration";
+	}
+	
+	model.addAttribute("data", list);
+		return "loginSuccess";
+		
+	}
+	
+	@GetMapping("/edit{rd}")
+	public ModelAndView editUser(@RequestParam("rd") int uid) {
+	    
+		System.out.println("edit ="+uid);
+	User user=	userServiceI.editUser(uid);
+		
+		return new ModelAndView("edit","user",user);
+			}
+	
+	
+	@GetMapping("/update")
+	public String updateUser(@ModelAttribute User user,Model model) {
+		System.out.println("Update="+user);
+		List<User> list=userServiceI.updateUser(user);
+		model.addAttribute("data", list);
+		
+		return "loginSuccess";
+		
+	}
+	
+	@RequestMapping("/del{rd}")
+	public String deleteUser(@RequestParam("rd")int uid,Model m) {
+		List<User> list=userServiceI.deleteUser(uid);
+		m.addAttribute("data",list);
+		return "loginSuccess";
+	
+}
+}
+
+
+
+
+package com.bikkadit.service;
+
+import java.util.List;
+
+import com.bikkadit.model.User;
+
+public interface UserServiceI {
+
+	public int SaveUser(User user);
+	
+	public List<User>  getAllUser();
+	
+	public List<User> loginCheck(User user);
+	
+	  User  editUser(int uid);
+	  
+	  public List<User>  updateUser(User user);
+	  
+	  List<User> deleteUser(int uid);
+}
+
+
+
+
+package com.bikkadit.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.bikkadit.dao.UserDaoI;
+import com.bikkadit.model.User;
+
+@Service
+public class UserServiceImpl implements UserServiceI {
+
+	@Autowired
+	private UserDaoI userDaoI;
+
+	@Override
+	public int SaveUser(User user) {
+		System.out.println("Service class method");
+
+		int id = userDaoI.saveUser(user);
+
+		return id;
+	}
+
+	@Override
+	public List<User> getAllUser() {
+
+		System.out.println("Service  layer forward");
+		List<User> list = userDaoI.getAllUser();
+		System.out.println("Service  layer backword");
+		return list;
+	}
+
+	@Override
+	public List<User> loginCheck(User user) {
+
+		List<User> list = userDaoI.loginCheck(user);
+		return list;
+	}
+
+	@Override
+	public User editUser(int uid) {
+
+		User u = userDaoI.editUser(uid);
+
+		return u;
+	}
+
+	@Override
+	public List<User> updateUser(User user) {
+
+		List<User> list = userDaoI.updateUser(user);
+
+		return list;
+	}
+
+	@Override
+	public List<User> deleteUser(int uid) {
+
+		List<User> list = userDaoI.deleteUser(uid);
+		return list;
+
+	}
+
+}
+
+
+
+package com.bikkadit.dao;
+
+import java.util.List;
+
+import com.bikkadit.model.User;
+
+public interface UserDaoI {
+
+	
+	public int saveUser(User user) ;
+	
+	public List<User>  getAllUser();
+	
+	public List<User> loginCheck(User user);
+	
+	  User  editUser(int uid);
+	
+	  public List<User>  updateUser(User user);
+	  
+	  List<User> deleteUser(int uid);
+	   
+}
+
+
+
+
+
+package com.bikkadit.dao;
+
+import java.util.List;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.bikkadit.model.User;
+
+@Repository
+public class UserDaoImpl implements UserDaoI{
+
+	@Autowired
+	private SessionFactory sf;
+	
+	@Override
+	public int saveUser(User user) {
+		
+		System.out.println("Dao Class Method");
+	Session session=sf.openSession();
+	Transaction tx=  session.beginTransaction();
+	   
+	  int id=    (int) session.save(user);
+	   
+		session.close();
+		return id;
+		
+	}
+
+	@Override
+	public List<User> getAllUser() {
+		System.out.println("Dao Layer Forward");
+		Session session=sf.openSession();
+	Query query=session.createQuery("from User");
+	List<User> list=query.getResultList(); 
+	System.out.println("Dao Layer backword");
+		return list;
+	}
+
+	@Override
+	public List<User> loginCheck(User user) {
+	  boolean flag=false;
+		Session session=sf.openSession();
+		Query query=session.createQuery("from User");
+		List<User> list=query.getResultList(); 
+		
+		for(User user1:list) {
+			
+			if(user.getUsername().equals(user1.getUsername()) && user.getPassword().equals(user1.getPassword()))
+			{
+				System.out.println("login success");
+				flag=true;
+				break;
+			}
+			}
+		    if(flag==true) {
+		    	return list;
+		    }
+		
+		return null;
+	}
+
+	@Override
+	public User editUser(int uid) {
+		
+	   Session session=sf.openSession();
+	  User u= session.get(User.class,uid);
+		return u;
+	}
+
+	@Override
+	public List<User> updateUser(User user) {
+		
+		  Session session=sf.openSession();
+		  Transaction tx=session.beginTransaction();
+		
+		  System.out.println("Update Method obj:"+user);
+		     session.update(user);
+		     tx.commit();
+		     session.close();
+		     
+		     
+		   Session session1=sf.openSession();
+		   Query query=session1.createQuery("from User");
+			List<User> list=query.getResultList();     
+		return list;
+	}
+
+	@Override
+	public List<User> deleteUser(int uid) {
+		
+		Session session=sf.openSession();
+		System.out.println("in delete dao layer");
+		User e=session.get(User.class, uid);
+		session.delete(e);
+		session.beginTransaction().commit();
+		session.close();
+		
+		Session session6=sf.openSession(); 
+		Query<User> query=session6.createQuery("From User");
+		List<User> list=query.getResultList();
+		return list;
+		
+		
+	}
+
+	
+}
+
+
+registration.jsp
+
+
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+
+<form action="reg">
+
+
+Name:
+<input type="text" name="name">
+
+Username:
+<input type="text" name="username">
+
+Password:
+<input type="text" name="password">
+
+<input type="submit" value="Register">
+
+</form>
+
+
+</body>
+</html>
+
+
+
+reg.jsp
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+
+Hii ${user.name}  your registration successfull >..!
+</body>
+</html>
+
+
+
+
+
+login.jsp
+
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+
+<form action="log">
+
+USERNAME:<input type="text" name="username"><br>
+PASSWORD:<input type="text" name="password"><br>
+<input type="submit" value="login">
+<a href="registration.jsp">new user</a>
+
+</form>
+
+</body>
+</html>
+
+
+
+edit.jsp
+
+<%@page import="com.bikkadit.model.User"%>
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+
+
+</head>
+<body>
+
+<form action="update">
+<%User u=(User)request.getAttribute("user"); %>
+  UId: <input type="text" name="uid" value="<%=u.getUid()%>">
+  Name : <input type="text" name="name" value="<%=u.getName()%>"><br><br> 
+  
+  UserName : <input type="text" name="username" value="<%=u.getUsername()%>"><br><br> 
+  Password : <input type="text" name="password" value="<%=u.getPassword()%>"><br><br> 
+  
+  <input type="submit" value="Update">
+</form>
+
+</body>
+</html>
+
+
+
+
+
+loginSuccess.jsp
+
+
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+    <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<!DOCTYPE html>
+<html>
+<script type="text/javascript">
+function edit()
+{
+document.myform.action="edit";
+document.myform.submit();
+}
+
+function del(){
+	document.myform.action="del";
+	document.myform.submit();
+	}
+</script>	
+<head>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<form name="myform">
+<table border=4 bgcolor="blackandwhite">
+<thead>
+<tr>
+<td>
+<td>ID</td>
+<td>NAME</td>
+<td>UserName</td>
+<td>Password</td>
+</tr>
+</thead>
+
+<tbody>
+<c:forEach items="${data}" var="c">
+    <tr>      
+       <td><input type="radio" name="rd" value="${c.uid}"></td>
+       <td> <c:out value="${c.uid}"></c:out></td>
+       <td><c:out value="${c.name}"></c:out></td>
+       <td><c:out value="${c.username}"></c:out></td> 
+       <td><c:out value="${c.password}"></c:out></td>
+     </tr>
+</c:forEach>     
+</tbody>
+</table>
+<input type="button" value="Edit" onclick="edit()">
+      <input type="button" value="Delete" onclick="del()">
+</form>
+<a href="registration" >add User</a>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+success.jsp
+
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+    <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<h1>Users</h1>
+
+<table>
+
+<thead>
+<tr>
+<td>Uid:</td>
+<td>name:</td>
+<td>Uname</td>
+<td>Password:</td> 
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<c:forEach items="${list}" var="l"> 
+<td>${l.uid}</td>
+<td>${l.name}</td>
+<td>${l.username}</td>
+<td>${l.password}</td>
+</tr>
+</c:forEach>
+
+</tbody>
+
+
+</table>
+</body>
+</html>
